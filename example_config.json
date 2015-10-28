@@ -1,0 +1,12 @@
+{
+  "email": {
+    "EMAIL_USE_TLS": "True",
+    "EMAIL_HOST": "someserver",
+    "EMAIL_PORT": "587",
+    "EMAIL_HOST_USER": "someaddress",
+    "EMAIL_HOST_PASSWORD": "somepassword"
+  },
+  "addresses": {
+    "to": "to@email.add"
+  }
+}
