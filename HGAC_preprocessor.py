@@ -2,6 +2,8 @@ import argparse
 import glob
 import json
 import os
+import zc.lockfile
+import sys
 
 __author__ = 'jgrundst'
 
@@ -17,8 +19,8 @@ def find_unprocessed(root_dir=None):
     return list(set(transferred_runs) - set(processed_runs))
 
 
-def parse_config(file=None):
-    with open(file) as f:
+def parse_config(config_file=None):
+    with open(config_file) as f:
         data = f.read()
     return json.loads(data)
 
@@ -31,7 +33,14 @@ def main():
                         help='Config file (.json)', required=True)
     args = parser.parse_args()
 
-    config = parse_config(file=args.config_file)
+    config = parse_config(config_file=args.config_file)
+
+    try:
+        zc.lockfile.LockFile('preprocessing')
+    except zc.lockfile.LockError:
+        print "ERROR: HGAC_preprocessor.py appears to be running. lockfile locked!"
+        sys.exit(1)
+
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'])
     print unprocessed_runs
 
