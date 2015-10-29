@@ -18,10 +18,9 @@ def find_unprocessed(root_dir=None):
 
 
 def parse_config(file=None):
-    global config
     with open(file) as f:
         data = f.read()
-    config = json.loads(data)
+    return json.loads(data)
 
 
 def main():
@@ -32,7 +31,7 @@ def main():
                         help='Config file (.json)', required=True)
     args = parser.parse_args()
 
-    parse_config(file=args.config_file)
+    config = parse_config(file=args.config_file)
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'])
     print unprocessed_runs
 
