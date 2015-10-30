@@ -87,6 +87,10 @@ def process_run(run_config=None, config=None):
                                   config['BaseCalls_dir'])
 
     for barcode_length in lane_collections:
+        """
+        The conversion software must run once for each barcode length,
+        requiring newly generated SampleSheet.csv files each time
+        """
         # build samplesheet
         generate_sample_sheet(run_config=run_config,
                               lanes=lane_collections[barcode_length],
