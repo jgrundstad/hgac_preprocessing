@@ -15,10 +15,17 @@ import requests
 
 import HGAC_processing as Hp
 
-__author__ = 'jgrundst'
+__author__ = 'A. Jason Grundstad'
 
 
 def find_unprocessed(root_dir=None, config=None):
+    """
+    return run names (only) of unprocessed runs (don't contain
+    the ProcessingComplete.txt file)
+    :param root_dir:
+    :param config:
+    :return:
+    """
     transferred_runs = [x.split('/')[3] for x in glob.glob(
         os.path.join(root_dir, '*', config['transfer_complete_filename']))]
     processed_runs = [x.split('/')[3] for x in glob.glob(
@@ -35,7 +42,7 @@ def parse_config(config_file=None):
 def process_run(run_name=None, config=None):
     config_request = requests.get('/'.join([config['seqConfig']['URL_get_config'], run_name]))
     run_config = json.loads(config_request.text)
-    preprocessing_cmds = Hp.build_preprocessing_cmds(run_config=run_config, config=config)
+    Hp.process_run(run_config_json=run_config, config=config)
 
 
 def set_lockfile():
@@ -61,6 +68,7 @@ def main():
 
     if len(unprocessed_runs) > 0:
         process_run(run_name=unprocessed_runs[0], config=config)
+
 
     lock.close()
 
