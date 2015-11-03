@@ -139,8 +139,9 @@ def link_files(run_config=None, config=None):
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
     for f in files:
         print f
-        new_filename = ''
-        m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*', f)
+        old_filename = f.split('/')[-1:]
+        m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*',
+                     old_filename)
         if run_config['run_type'] == 'single-end' and m:
             print 'single end'
             new_filename = '{bnid}_{run}_{lane}_sequence.txt.gz'.format(
