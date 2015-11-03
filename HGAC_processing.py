@@ -139,7 +139,6 @@ def link_files(run_config=None, config=None):
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
     for f in files:
         old_filename = f.split('/')[-1]
-        print "old filename {}".format(old_filename)
         m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*',
                      old_filename)
         if run_config['run_type'] == 'single-end' and m:
@@ -156,14 +155,14 @@ def link_files(run_config=None, config=None):
         else:
             print >>sys.stderr, "ERROR: unable to create symlink from {}".format(f)
             raise ValueError
-
+        print "linking {} -> {}".format(f, new_filename)
         os.symlink(f, new_filename)
+    os.chdir('..')
 
 
 def process_run(run_config=None, config=None):
 
     lane_collections = collect_lanes_by_barcode_len(run_config=run_config)
-
     base_calls_dir = os.path.join(config['root_dir'], run_config['run_name'],
                                   config['BaseCalls_dir'])
 
@@ -185,4 +184,8 @@ def process_run(run_config=None, config=None):
 
     # link files, md5sums, fastqc processing
     link_files(run_config=run_config, config=config)
+    # TODO md5sums
+    # TODO fastqc processing
+    os.mknod(run_config['processing_complete_filename'])
 
+    send_process_complete_email(config=config, run_config=run_config)
