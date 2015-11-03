@@ -138,13 +138,20 @@ def link_files(run_config=None, config=None):
     # find all unaligned, non-undetermined files
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
     for f in files:
+        print f
+        new_filename = ''
         m = re.match(r'(?P<bnid>\d+-\d+)_[ATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_', f)
         if run_config['run_type'] == 'single-end':
+            new_filename = '{bnid}_{run}_{lane}_sequence.txt.gz'.format(
+                bnid=m.group('bnid'), run=run_config['run_name'],
+                lane=m.group('lane')
+            )
+        elif run_config['run_type'] == 'paired-end':
             new_filename = '{bnid}_{run}_{lane}_{end}_sequence.txt.gz'.format(
                 bnid=m.group('bnid'), run=run_config['run_name'],
-                lane=m.group('lane'), end=m.group('end')
+                lane=m.group('lane'), end=run_config['end']
             )
-            os.symlink(f, new_filename)
+        os.symlink(f, new_filename)
 
 
 def process_run(run_config=None, config=None):
