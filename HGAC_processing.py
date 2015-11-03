@@ -131,7 +131,7 @@ def bcl_to_fastq(run_config=None, config=None):
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
 
 
-def link_files(run_config=run_config, config=config):
+def link_files(run_config=None, config=None):
     os.chdir('TEMP')
     # find all unaligned, non-undetermined files
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/*/*.fastq.gz')
