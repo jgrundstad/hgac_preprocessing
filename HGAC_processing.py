@@ -140,7 +140,7 @@ def link_files(run_config=None, config=None):
     for f in files:
         print f
         new_filename = ''
-        m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_', f)
+        m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*', f)
         if run_config['run_type'] == 'single-end' and m:
             print 'single end'
             new_filename = '{bnid}_{run}_{lane}_sequence.txt.gz'.format(
