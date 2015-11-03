@@ -138,7 +138,7 @@ def link_files(run_config=None, config=None):
     # find all unaligned, non-undetermined files
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
     for f in files:
-        old_filename = f.split('/')[-1:]
+        old_filename = f.split('/')[-1]
         print "old filename {}".format(old_filename)
         m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*',
                      old_filename)
