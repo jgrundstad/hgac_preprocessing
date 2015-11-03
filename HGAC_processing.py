@@ -1,3 +1,4 @@
+import glob
 import os
 import subprocess
 import sys
@@ -130,10 +131,12 @@ def bcl_to_fastq(run_config=None, config=None):
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
 
 
-def post_processing(run_config=None, config=None):
-    os.chdir(os.path.join(config['root_dir'], run_config['run_name'], 'TEMP'))
-
-    pass
+def link_files(run_config=run_config, config=config):
+    os.chdir('TEMP')
+    # find all unaligned, non-undetermined files
+    files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/*/*.fastq.gz')
+    for file in files:
+        print file
 
 
 def process_run(run_config=None, config=None):
@@ -160,5 +163,5 @@ def process_run(run_config=None, config=None):
         bcl_to_fastq(run_config=run_config, config=config)
 
     # link files, md5sums, fastqc processing
-    post_processing(run_config=run_config, config=config)
+    link_files(run_config=run_config, config=config)
 
