@@ -4,6 +4,8 @@ import subprocess
 import sys
 import multiprocessing
 
+import re
+
 __author__ = 'A. Jason Grundstad'
 
 
@@ -134,9 +136,15 @@ def bcl_to_fastq(run_config=None, config=None):
 def link_files(run_config=None, config=None):
     os.chdir('TEMP')
     # find all unaligned, non-undetermined files
-    files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/*/*.fastq.gz')
+    files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
     for f in files:
-        print f
+        m = re.match(r'(?P<bnid>\d+-\d+)_[ATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_', f)
+        if run_config['run_type'] == 'single-end':
+            new_filename = '{bnid}_{run}_{lane}_{end}_sequence.txt.gz'.format(
+                bnid=m.group('bnid'), run=run_config['run_name'],
+                lane=m.group('lane'), end=m.group('end')
+            )
+            os.symlink(f, new_filename)
 
 
 def process_run(run_config=None, config=None):
