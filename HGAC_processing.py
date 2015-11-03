@@ -151,7 +151,7 @@ def link_files(run_config=None, config=None):
         elif run_config['run_type'] == 'paired-end' and m:
             new_filename = '{bnid}_{run}_{lane}_{end}_sequence.txt.gz'.format(
                 bnid=m.group('bnid'), run=run_config['run_name'],
-                lane=m.group('lane'), end=run_config['end']
+                lane=m.group('lane'), end=m.group('end')
             )
         else:
             print >>sys.stderr, "ERROR: unable to create symlink from {}".format(f)
