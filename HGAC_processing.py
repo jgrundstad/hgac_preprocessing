@@ -138,8 +138,8 @@ def link_files(run_config=None, config=None):
     # find all unaligned, non-undetermined files
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
     for f in files:
-        print f
         old_filename = f.split('/')[-1:]
+        print "old filename {}".format(old_filename)
         m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*',
                      old_filename)
         if run_config['run_type'] == 'single-end' and m:
@@ -156,6 +156,7 @@ def link_files(run_config=None, config=None):
         else:
             print >>sys.stderr, "ERROR: unable to create symlink from {}".format(f)
             raise ValueError
+
         os.symlink(f, new_filename)
 
 
