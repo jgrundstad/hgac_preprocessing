@@ -135,8 +135,8 @@ def link_files(run_config=None, config=None):
     os.chdir('TEMP')
     # find all unaligned, non-undetermined files
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/*/*.fastq.gz')
-    for file in files:
-        print file
+    for f in files:
+        print f
 
 
 def process_run(run_config=None, config=None):
