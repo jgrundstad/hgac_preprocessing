@@ -140,17 +140,21 @@ def link_files(run_config=None, config=None):
     for f in files:
         print f
         new_filename = ''
-        m = re.match(r'(?P<bnid>\d+-\d+)_[ATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_', f)
-        if run_config['run_type'] == 'single-end':
+        m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_', f)
+        if run_config['run_type'] == 'single-end' and m:
+            print 'single end'
             new_filename = '{bnid}_{run}_{lane}_sequence.txt.gz'.format(
                 bnid=m.group('bnid'), run=run_config['run_name'],
                 lane=m.group('lane')
             )
-        elif run_config['run_type'] == 'paired-end':
+        elif run_config['run_type'] == 'paired-end' and m:
             new_filename = '{bnid}_{run}_{lane}_{end}_sequence.txt.gz'.format(
                 bnid=m.group('bnid'), run=run_config['run_name'],
                 lane=m.group('lane'), end=run_config['end']
             )
+        else:
+            print >>sys.stderr, "ERROR: unable to create symlink from {}".format(f)
+            raise ValueError
         os.symlink(f, new_filename)
 
 
