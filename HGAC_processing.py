@@ -3,8 +3,9 @@ import os
 import subprocess
 import sys
 import multiprocessing
-
 import re
+
+from util import emailer
 
 __author__ = 'A. Jason Grundstad'
 
@@ -160,6 +161,16 @@ def link_files(run_config=None, config=None):
     os.chdir('..')
 
 
+def find_demultiplex_files():
+    """
+    cwd will be the run directory
+    :return:
+    """
+    return glob.glob(os.path.join('Data', 'Intensities', 'BaseCalls',
+                                               'Unaligned*', '*',
+                                               'Demultiplex_Stats.htm'))
+
+
 def process_run(run_config=None, config=None):
 
     lane_collections = collect_lanes_by_barcode_len(run_config=run_config)
@@ -188,4 +199,14 @@ def process_run(run_config=None, config=None):
     # TODO fastqc processing
     os.mknod(run_config['processing_complete_filename'])
 
-    send_process_complete_email(config=config, run_config=run_config)
+    demultiplex_files = find_demultiplex_files()
+
+    subj = 'Preprocessing complete: {}'.format(run_config['run_name'])
+    message = '''
+Preprocessing complete for run: {}
+Server: {}
+'''
+    emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+                      to=config['email']['to'], cc=config['email']['cc'],
+                      reply_to=config['email']['reply-to'], subject=subj,
+                      content=message, html_files=demultiplex_files)

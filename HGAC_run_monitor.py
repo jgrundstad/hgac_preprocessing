@@ -69,7 +69,6 @@ def main():
     if len(unprocessed_runs) > 0:
         process_run(run_name=unprocessed_runs[0], config=config)
 
-
     lock.close()
 
 
