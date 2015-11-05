@@ -208,5 +208,5 @@ Server: {}
 '''
     emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
                       to=config['addresses']['to'], cc=config['addresses']['cc'],
-                      reply_to=config['email']['reply-to'], subject=subj,
+                      reply_to=config['addresses']['reply-to'], subject=subj,
                       content=message, html_files=demultiplex_files)

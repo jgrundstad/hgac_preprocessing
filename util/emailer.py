@@ -27,10 +27,13 @@ def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
     message['from_email'] = reply_to
     message['text'] = content
 
+    html_content = ''
     if html_files:
         for filename in html_files:
             with open(filename, 'r') as f:
-                message['html'] += f.read()
+                html_content += f.read()
+
+    message['html'] = html_content
 
     result = mandrill_client.messages.send(message=message, async=False,
                                            ip_pool='Main Pool')
