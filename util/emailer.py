@@ -1,4 +1,27 @@
 import mandrill
+import base64
+
+html_style = '''
+<STYLE>
+h1 {font-size:'12px';}
+h2 {font-size:'11px';}
+th
+    {
+        font-family:courier;
+        font-size:12px;
+        background-color:7D0000;
+        color:white;
+    }
+td
+    {
+        font-family:courier;
+        font-size:10px;
+        white-space:nowrap;
+        text-align:right;
+
+    }
+</STYLE>
+'''
 
 
 def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
@@ -33,7 +56,8 @@ def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
             with open(filename, 'r') as f:
                 html_content += f.read()
 
-    message['html'] = html_content
+
+    message['html'] = html_content + html_style
 
     result = mandrill_client.messages.send(message=message, async=False,
                                            ip_pool='Main Pool')
