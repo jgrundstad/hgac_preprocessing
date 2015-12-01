@@ -1,13 +1,21 @@
 import glob
 import os
+import socket
 import subprocess
 import sys
 import multiprocessing
 import re
+from bs4 import BeautifulSoup
+import json
+from requests import request
 
 from util import emailer
 
 __author__ = 'A. Jason Grundstad'
+
+
+def get_hostname():
+    return socket.gethostname()
 
 
 def collect_lanes_by_barcode_len(run_config=None):
@@ -23,7 +31,8 @@ def collect_lanes_by_barcode_len(run_config=None):
     return return_d
 
 
-def build_configureBclToFastq_command(run_config=None, config=None):
+def build_configureBclToFastq_command(run_config=None, config=None,
+                                      barcode_len=None):
     """
     generate one command per barcode length.  usually 6 or 8
     :param run_config:
@@ -40,6 +49,8 @@ def build_configureBclToFastq_command(run_config=None, config=None):
     base_mask = '--use-bases-mask Y{}'.format(run_config['read1_cycles'])
     if run_config['barcode_cycles'] is not 'null':
         base_mask += ',I{}'.format(run_config['barcode_cycles'])
+        for i in range(barcode_len, run_config['barcode_cycles'] - 1):  # account for unneeded index cycles
+            base_mask += 'N'
     if run_config['read2_cycles'] is not 'null':
         base_mask += ',Y{}'.format(run_config['read2_cycles'])
 
@@ -103,7 +114,7 @@ def generate_support_files(run_config=None, config=None, lanes=None, path=None):
     )
 
 
-def bcl_to_fastq(run_config=None, config=None):
+def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     """
     This needs to be performed in the /raid/illumina_production/<run_name> dir
     runs the BCLToFastq Illumina software, configuring the demultiplexing,
@@ -114,30 +125,72 @@ def bcl_to_fastq(run_config=None, config=None):
     """
     cpu_count = multiprocessing.cpu_count()
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
-    cmd = build_configureBclToFastq_command(run_config=run_config, config=config)
-    args = cmd.split(' ')
-    try:
-        with open('configureBclToFastq.log.out', 'w') as out, \
-                open('configureBclToFastq.log.err', 'w') as err:
-            subprocess.Popen(args, stdout=out, stderr=err)
-    except:
-        print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
-        raise
+    cmd = build_configureBclToFastq_command(run_config=run_config, config=config,
+                                            barcode_len=barcode_len)
+    print "pre-split cmd: {}".format(cmd)
+    # args = cmd.split(' ')
+    # try:
+    #     with open(os.path.join(config['root_dir'], run_config['run_name'],
+    #                            'configureBclToFastq.log.out'), 'w') as out, \
+    #             open(os.path.join(config['root_dir'], run_config['run_name'],
+    #                               'configureBclToFastq.log.err'), 'w') as err:
+    #         print >>out, "{}".format(cmd)
+    #         # print "args: {}".format(args)
+    #         proc = subprocess.Popen(cmd, stdout=out, stderr=err, shell=True)
+    #         proc.communicate()
+    #         exit_code = proc.returncode
+    #         if exit_code > 0:
+    #             print >>sys.stderr, "ERROR [{}]: configureBclToFastq.pl command failed!!!\nExiting.".format(
+    #                 exit_code
+    #             )
+    #             server_name = get_hostname()
+    #             subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
+    #             content = "Server: {}\nRun name: {}\n Error running 'configureBclToFastq.pl'".format(
+    #                 server_name, run_config['run_name']
+    #             )
+    #             emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+    #                               to=config['addresses']['to'],
+    #                               cc=config['addresses']['cc'],
+    #                               reply_to=config['addresses']['reply-to'],
+    #                               subject=subj, content=content)
+    #             sys.exit(1)
+    #
+    # except:
+    #     print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
+    #     raise
 
     os.chdir('Data/Intensities/BaseCalls/Unaligned')
-    try:
-        with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
-            subprocess.Popen(['make', '-j', cpu_count], stdout=out, stderr=err)
-    except:
-        print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
-        raise
+    # try:
+    #     with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
+    #         # proc = subprocess.Popen(['make', '-j', str(cpu_count)], stdout=out, stderr=err, shell=True)
+    #         proc = subprocess.Popen(['make', '-j', '2'], stdout=out, stderr=err, shell=True)
+    #         proc.communicate()
+    #         exit_code = proc.wait()
+    #         if exit_code > 0:
+    #             print >>sys.stderr, "ERROR: make command failed!!!\nExiting."
+    #             server_name = get_hostname()
+    #             subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
+    #             content = "Server: {}\nRun name: {}\n Error running 'make'".format(
+    #                 server_name, run_config['run_name']
+    #             )
+    #             emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+    #                               to=config['addresses']['to'],
+    #                               cc=config['addresses']['cc'],
+    #                               reply_to=config['addresses']['reply-to'],
+    #                               subject=subj, content=content)
+    #             sys.exit(1)
+    # except:
+    #     print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
+    #     raise
+    os.chdir('..')
+    os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
 
 
 def link_files(run_config=None, config=None):
     os.chdir('TEMP')
     # find all unaligned, non-undetermined files
-    files = glob.glob('../Data/Intensities/BaseCalls/Unaligned/Project_*/*/*.fastq.gz')
+    files = glob.glob('../Data/Intensities/BaseCalls/Unaligned*/Project_*/*/*.fastq.gz')
     for f in files:
         old_filename = f.split('/')[-1]
         m = re.match(r'(?P<bnid>\d+-\d+)_[atgcATGC]+_L00(?P<lane>\d)_R(?P<end>\d)_.*',
@@ -157,7 +210,11 @@ def link_files(run_config=None, config=None):
             print >>sys.stderr, "ERROR: unable to create symlink from {}".format(f)
             raise ValueError
         print "linking {} -> {}".format(f, new_filename)
-        os.symlink(f, new_filename)
+        try:
+            os.symlink(f, new_filename)
+        except OSError:
+            os.remove(new_filename)
+            os.symlink(f, new_filename)
     os.chdir('..')
 
 
@@ -171,6 +228,48 @@ def find_demultiplex_files():
                                                'Demultiplex_Stats.htm'))
 
 
+def concatenate_demultiplex_html():
+    """
+    parse the HTML from the DemultiplexStats.htm file(s),
+    returning a concatenation of all html in the body tags
+
+    :return: string (html)
+    """
+    demux_files = find_demultiplex_files()
+    final_html = ''
+    for demux_file in demux_files:
+        with open(demux_file, 'r') as f:
+            html = ''
+            flag = 0
+            for line in f:
+                if '</body>' in line:
+                    flag = 0
+                if flag and '</table>' in line:
+                    pass
+                elif flag and 'ScrollableTableHeader' in line:
+                    html += '<table class="table">\n'
+                elif flag and 'ScrollableTableBody' in line:
+                    pass
+                elif flag and line == '<p></p>\n' or '<p>bcl2fastq' in line:
+                    html += '</table>\n' + line
+                elif flag and '<col' not in line:
+                    # line = line.replace('<th>', '<td>')
+                    # line = line.replace('</th>', '</td>')
+                    html += line
+                if '<body>' in line:
+                    flag = 1
+            final_html += '<div>' + html + '</div>'
+    return final_html
+
+
+def post_demultiplex_files(url, run_name=None):
+    demux_html = concatenate_demultiplex_html()
+    html_json = {"html": demux_html}
+    headers = {"Content-type": "application/json"}
+    response = request.post(url, data=json.dumps(html_json), headers=headers)
+    print "Post_demultiplex_files response: {}".format(json.dumps(response))
+
+
 def process_run(run_config=None, config=None):
 
     lane_collections = collect_lanes_by_barcode_len(run_config=run_config)
@@ -178,7 +277,10 @@ def process_run(run_config=None, config=None):
                                   config['BaseCalls_dir'])
 
     #  TEMP directory will hold all symlinks to processed data
-    os.mkdir(os.path.join(config['root_dir'], run_config['run_name'], 'TEMP'))
+    try:
+        os.mkdir(os.path.join(config['root_dir'], run_config['run_name'], 'TEMP'))
+    except OSError:
+        print "TEMP dir already exists.  continuing"
 
     for barcode_length in lane_collections:
         """
@@ -191,15 +293,18 @@ def process_run(run_config=None, config=None):
                                path=base_calls_dir)
 
         # execute configureBclToFastq and make -j num_cores
-        bcl_to_fastq(run_config=run_config, config=config)
+        bcl_to_fastq(run_config=run_config, config=config, barcode_len=barcode_length)
 
     # link files, md5sums, fastqc processing
     link_files(run_config=run_config, config=config)
     # TODO md5sums
     # TODO fastqc processing
-    os.mknod(run_config['processing_complete_filename'])
+    #os.mknod(config['processing_complete_filename'])
 
     demultiplex_files = find_demultiplex_files()
+
+    post_demultiplex_files(url=config['post_demultiplex_files'],
+                           run_name=run_config['run_name'])
 
     subj = 'Preprocessing complete: {}'.format(run_config['run_name'])
     message = '''

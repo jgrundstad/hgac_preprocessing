@@ -26,6 +26,8 @@ def find_unprocessed(root_dir=None, config=None):
     :param config:
     :return:
     """
+    print "preprocessing_complete_filename: {}".format(config['processing_complete_filename'])
+    print "Searching: {}".format(os.path.join(root_dir, '*', config['processing_complete_filename']))
     transferred_runs = [x.split('/')[3] for x in glob.glob(
         os.path.join(root_dir, '*', config['transfer_complete_filename']))]
     processed_runs = [x.split('/')[3] for x in glob.glob(
@@ -39,10 +41,10 @@ def parse_config(config_file=None):
     return json.loads(data)
 
 
-def process_run(run_name=None, config=None):
+def start_processing(run_name=None, config=None):
     config_request = requests.get('/'.join([config['seqConfig']['URL_get_config'], run_name]))
     run_config = json.loads(config_request.text)
-    Hp.process_run(run_config_json=run_config, config=config)
+    Hp.process_run(run_config=run_config, config=config)
 
 
 def set_lockfile():
@@ -58,16 +60,22 @@ def main():
                                      'Fire off preprocessing/demultiplexing.')
     parser.add_argument('-c', '--config', dest='config_file',
                         help='Config file (.json)', required=True)
+    # parser.add_argument('-f', '--force', action='store_true',
+    #                     help='remove existing files')
     args = parser.parse_args()
 
     config = parse_config(config_file=args.config_file)
 
     lock = set_lockfile()
-    unprocessed_runs = find_unprocessed(root_dir=config['root_dir'])
+    unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
     print unprocessed_runs
 
     if len(unprocessed_runs) > 0:
-        process_run(run_name=unprocessed_runs[0], config=config)
+        # set the "processed" file to avoid re-firing off the job if something goes wrong
+        # manually remove it to queue up for processing
+        os.mknod(os.path.join(config['root_dir'], unprocessed_runs[0],
+                              config['processing_complete_filename']))
+        start_processing(run_name=unprocessed_runs[0], config=config)
 
     lock.close()
 
