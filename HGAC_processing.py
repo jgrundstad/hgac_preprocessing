@@ -247,15 +247,15 @@ def concatenate_demultiplex_html():
                 if flag and '</table>' in line:
                     pass
                 elif flag and 'ScrollableTableHeader' in line:
-                    html += '<table class="table">\n'
+                    html += '<table class="table table-bordered table-condensed">\n'
                 elif flag and 'ScrollableTableBody' in line:
                     pass
                 elif flag and line == '<p></p>\n' or '<p>bcl2fastq' in line:
                     html += '</table>\n' + line
                 elif flag and '<col' not in line:
-                    # line = line.replace('<th>', '<td>')
-                    # line = line.replace('</th>', '</td>')
-                    html += line
+                    if '</td>' in line or line == '<tr>\n':  # remove return character to make for easier parsing
+                        line = line.rstrip()
+                    html += line + '\n'
                 if '<body>' in line:
                     flag = 1
             final_html += '<div>' + html + '</div>'

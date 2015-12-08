@@ -47,9 +47,9 @@ def start_processing(run_name=None, config=None):
     Hp.process_run(run_config=run_config, config=config)
 
 
-def set_lockfile():
+def set_lockfile(lockfile=None):
     try:
-        return zc.lockfile.LockFile('preprocessing')
+        return zc.lockfile.LockFile(lockfile)
     except zc.lockfile.LockError:
         print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much locked!"
         sys.exit(1)
@@ -66,7 +66,7 @@ def main():
 
     config = parse_config(config_file=args.config_file)
 
-    lock = set_lockfile()
+    lock = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
     print unprocessed_runs
 
