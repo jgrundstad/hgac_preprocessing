@@ -5,7 +5,6 @@ import subprocess
 import sys
 import multiprocessing
 import re
-from bs4 import BeautifulSoup
 import json
 from requests import request
 
@@ -303,7 +302,7 @@ def process_run(run_config=None, config=None):
 
     demultiplex_files = find_demultiplex_files()
 
-    post_demultiplex_files(url=config['post_demultiplex_files'],
+    post_demultiplex_files(url=config['seqConfig']['URL_post_demultiplex_files'],
                            run_name=run_config['run_name'])
 
     subj = 'Preprocessing complete: {}'.format(run_config['run_name'])
