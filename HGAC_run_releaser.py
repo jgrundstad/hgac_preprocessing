@@ -2,15 +2,16 @@ import argparse
 import glob
 import json
 import os
-
+import socket
 import requests
 
 from HGAC_run_monitor import parse_config
+from util import emailer
 
 __author__ = 'A. Jason Grundstad'
 
 
-class Releaser():
+class Releaser:
 
     def __init__(self, config_file=None):
         self.config = parse_config(config_file=config_file)
@@ -27,7 +28,6 @@ class Releaser():
         print to_be_released
         for run_name in to_be_released:
             self.release_run(run_name)
-            self.update_run_status(run_name, '6')
 
     def find_completed(self):
         os.chdir(self.config['root_dir'])
@@ -41,13 +41,39 @@ class Releaser():
     def release_run(self, run_name):
         os.chdir(os.path.join(self.config['root_dir'], run_name, 'TEMP'))
         fastq_files = glob.glob('*_sequence.txt.gz')
+        released_files = []
+        removed_files = []
         for fastq_file in fastq_files:
             status = self.get_release_status_for_file(filename=fastq_file)
-            if status == 1:
+            if status == 1 or status == 0:
                 os.remove(fastq_file)
+                removed_files.append(fastq_file)
+            elif status == 2:
+                released_files.append(fastq_file)
         os.chdir('..')
         os.rename('TEMP', 'COMPLETED')
         os.mknod(os.path.join('COMPLETED', 'sync.me'))
+        hostname = socket.gethostname()
+        subject = '({}) Run {} released'.format(hostname, run_name)
+        message = '''Run {run_name} on {hostname} has been released.
+
+These files have been marked for import:
+{imported}
+
+These files will not be released:
+{removed}
+'''
+        message = message.format(run_name=run_name, hostname=hostname,
+                                 imported='\n'.join(released_files),
+                                 removed='\n'.join(removed_files))
+
+        emailer.send_mail(api_key=self.config['email']['EMAIL_HOST_PASSWORD'],
+                          to=self.config['addresses']['to'],
+                          cc=self.config['addresses']['cc'],
+                          reply_to=self.config['addresses']['reply-to'],
+                          subject=subject,
+                          content=message)
+        self.update_run_status(run_name, '6')
 
     def get_release_status_for_file(self, filename=None):
         toks = filename.split('_')
@@ -56,10 +82,11 @@ class Releaser():
         lane_number = toks[5]
         response = requests.get(os.path.join(self.config['seqConfig']['URL_get_library_status'],
                                              run_name, lane_number, bionimbus_id))
-        return json.loads(response.text)[bionimbus_id]
+        return int(json.loads(response.text)[bionimbus_id])
 
     def update_run_status(self, run_name, status):
         response = requests.get(os.path.join(self.config['seqConfig']['URL_set_run_status'],
+                                             run_name,
                                              status))
         print response.text
 
