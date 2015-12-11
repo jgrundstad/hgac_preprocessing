@@ -132,59 +132,59 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     cmd = build_configureBclToFastq_command(run_config=run_config, config=config,
                                             barcode_len=barcode_len)
     print "pre-split cmd: {}".format(cmd)
-    # try:
-    #     with open(os.path.join(config['root_dir'], run_config['run_name'],
-    #                            'configureBclToFastq.log.out'), 'w') as out, \
-    #             open(os.path.join(config['root_dir'], run_config['run_name'],
-    #                               'configureBclToFastq.log.err'), 'w') as err:
-    #         print >>out, "{}".format(cmd)
-    #         # print "args: {}".format(args)
-    #         proc = subprocess.Popen(cmd, stdout=out, stderr=err, shell=True)
-    #         proc.communicate()
-    #         exit_code = proc.returncode
-    #         if exit_code > 0:
-    #             print >>sys.stderr, "ERROR [{}]: configureBclToFastq.pl command failed!!!\nExiting.".format(
-    #                 exit_code
-    #             )
-    #             server_name = get_hostname()
-    #             subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
-    #             content = "Server: {}\nRun name: {}\n Error running 'configureBclToFastq.pl'".format(
-    #                 server_name, run_config['run_name']
-    #             )
-    #             emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
-    #                               to=config['addresses']['to'],
-    #                               cc=config['addresses']['cc'],
-    #                               reply_to=config['addresses']['reply-to'],
-    #                               subject=subj, content=content)
-    #             sys.exit(1)
-    #
-    # except:
-    #     print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
-    #     raise
+    try:
+        with open(os.path.join(config['root_dir'], run_config['run_name'],
+                               'configureBclToFastq.log.out'), 'w') as out, \
+                open(os.path.join(config['root_dir'], run_config['run_name'],
+                                  'configureBclToFastq.log.err'), 'w') as err:
+            print >>out, "{}".format(cmd)
+            # print "args: {}".format(args)
+            proc = subprocess.Popen(cmd, stdout=out, stderr=err, shell=True)
+            proc.communicate()
+            exit_code = proc.returncode
+            if exit_code > 0:
+                print >>sys.stderr, "ERROR [{}]: configureBclToFastq.pl command failed!!!\nExiting.".format(
+                    exit_code
+                )
+                server_name = get_hostname()
+                subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
+                content = "Server: {}\nRun name: {}\n Error running 'configureBclToFastq.pl'".format(
+                    server_name, run_config['run_name']
+                )
+                emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+                                  to=config['addresses']['to'],
+                                  cc=config['addresses']['cc'],
+                                  reply_to=config['addresses']['reply-to'],
+                                  subject=subj, content=content)
+                sys.exit(1)
+
+    except:
+        print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
+        raise
 
     os.chdir('Data/Intensities/BaseCalls/Unaligned')
-    # try:
-    #     with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
-    #         # proc = subprocess.Popen(['make', '-j ' + str(cpu_count)], stdout=out, stderr=err, shell=True)
-    #         proc = subprocess.Popen(['make', '-j 2'], stdout=out, stderr=err, shell=True)
-    #         proc.communicate()
-    #         exit_code = proc.wait()
-    #         if exit_code > 0:
-    #             print >>sys.stderr, "ERROR: make command failed!!!\nExiting."
-    #             server_name = get_hostname()
-    #             subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
-    #             content = "Server: {}\nRun name: {}\n Error running 'make'".format(
-    #                 server_name, run_config['run_name']
-    #             )
-    #             emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
-    #                               to=config['addresses']['to'],
-    #                               cc=config['addresses']['cc'],
-    #                               reply_to=config['addresses']['reply-to'],
-    #                               subject=subj, content=content)
-    #             sys.exit(1)
-    # except:
-    #     print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
-    #     raise
+    try:
+        with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
+            # proc = subprocess.Popen(['make', '-j ' + str(cpu_count)], stdout=out, stderr=err, shell=True)
+            proc = subprocess.Popen(['make', '-j 2'], stdout=out, stderr=err, shell=True)
+            proc.communicate()
+            exit_code = proc.wait()
+            if exit_code > 0:
+                print >>sys.stderr, "ERROR: make command failed!!!\nExiting."
+                server_name = get_hostname()
+                subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
+                content = "Server: {}\nRun name: {}\n Error running 'make'".format(
+                    server_name, run_config['run_name']
+                )
+                emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+                                  to=config['addresses']['to'],
+                                  cc=config['addresses']['cc'],
+                                  reply_to=config['addresses']['reply-to'],
+                                  subject=subj, content=content)
+                sys.exit(1)
+    except:
+        print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
+        raise
     os.chdir('..')
     os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
     os.rename('SampleSheet.csv', 'SampleSheet' + str(barcode_len) + '.csv')
@@ -262,7 +262,7 @@ def concatenate_demultiplex_html():
                     html += line
                 if '<body>' in line:
                     flag = 1
-            final_html += 'Hostname: ' + socket.gethostname() + '\n<div>' + html + '</div>'
+            final_html += '<div><h2Hostname: ' + socket.gethostname() + '</h2>\n' + html + '</div>'
     return final_html
 
 
