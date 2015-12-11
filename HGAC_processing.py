@@ -262,7 +262,7 @@ def concatenate_demultiplex_html():
                     html += line
                 if '<body>' in line:
                     flag = 1
-            final_html += '<div>' + html + '</div>'
+            final_html += 'Hostname: ' + socket.gethostname() + '\n<div>' + html + '</div>'
     return final_html
 
 
