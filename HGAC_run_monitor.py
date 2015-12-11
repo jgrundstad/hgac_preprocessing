@@ -51,7 +51,7 @@ def set_lockfile(lockfile=None):
     try:
         return zc.lockfile.LockFile(lockfile)
     except zc.lockfile.LockError:
-        print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much locked!"
+        print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much stopping!"
         sys.exit(1)
 
 
@@ -71,11 +71,20 @@ def main():
     print unprocessed_runs
 
     if len(unprocessed_runs) > 0:
-        # set the "processed" file to avoid re-firing off the job if something goes wrong
-        # manually remove it to queue up for processing
-        os.mknod(os.path.join(config['root_dir'], unprocessed_runs[0],
-                              config['processing_complete_filename']))
-        start_processing(run_name=unprocessed_runs[0], config=config)
+        # Is the run approved?
+        response = requests.get(os.path.join(config['seqConfig']['URL_get_runs_by_status'], '1'))
+        for run_name in unprocessed_runs:
+            if run_name in json.loads(response.text).values():
+                # set the "processed" file to avoid re-firing off the job if something goes wrong
+                # manually remove it to queue up for processing
+                os.mknod(os.path.join(config['root_dir'], unprocessed_runs[0],
+                                      config['processing_complete_filename']))
+                start_processing(run_name=unprocessed_runs[0], config=config)
+                break # just do the first approved and stop
+            else:
+                print "Run {} does not have an approved config file available".format(
+                    run_name
+                )
 
     lock.close()
 

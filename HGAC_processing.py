@@ -132,61 +132,62 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     cmd = build_configureBclToFastq_command(run_config=run_config, config=config,
                                             barcode_len=barcode_len)
     print "pre-split cmd: {}".format(cmd)
-    try:
-        with open(os.path.join(config['root_dir'], run_config['run_name'],
-                               'configureBclToFastq.log.out'), 'w') as out, \
-                open(os.path.join(config['root_dir'], run_config['run_name'],
-                                  'configureBclToFastq.log.err'), 'w') as err:
-            print >>out, "{}".format(cmd)
-            # print "args: {}".format(args)
-            proc = subprocess.Popen(cmd, stdout=out, stderr=err, shell=True)
-            proc.communicate()
-            exit_code = proc.returncode
-            if exit_code > 0:
-                print >>sys.stderr, "ERROR [{}]: configureBclToFastq.pl command failed!!!\nExiting.".format(
-                    exit_code
-                )
-                server_name = get_hostname()
-                subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
-                content = "Server: {}\nRun name: {}\n Error running 'configureBclToFastq.pl'".format(
-                    server_name, run_config['run_name']
-                )
-                emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
-                                  to=config['addresses']['to'],
-                                  cc=config['addresses']['cc'],
-                                  reply_to=config['addresses']['reply-to'],
-                                  subject=subj, content=content)
-                sys.exit(1)
-
-    except:
-        print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
-        raise
+    # try:
+    #     with open(os.path.join(config['root_dir'], run_config['run_name'],
+    #                            'configureBclToFastq.log.out'), 'w') as out, \
+    #             open(os.path.join(config['root_dir'], run_config['run_name'],
+    #                               'configureBclToFastq.log.err'), 'w') as err:
+    #         print >>out, "{}".format(cmd)
+    #         # print "args: {}".format(args)
+    #         proc = subprocess.Popen(cmd, stdout=out, stderr=err, shell=True)
+    #         proc.communicate()
+    #         exit_code = proc.returncode
+    #         if exit_code > 0:
+    #             print >>sys.stderr, "ERROR [{}]: configureBclToFastq.pl command failed!!!\nExiting.".format(
+    #                 exit_code
+    #             )
+    #             server_name = get_hostname()
+    #             subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
+    #             content = "Server: {}\nRun name: {}\n Error running 'configureBclToFastq.pl'".format(
+    #                 server_name, run_config['run_name']
+    #             )
+    #             emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+    #                               to=config['addresses']['to'],
+    #                               cc=config['addresses']['cc'],
+    #                               reply_to=config['addresses']['reply-to'],
+    #                               subject=subj, content=content)
+    #             sys.exit(1)
+    #
+    # except:
+    #     print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
+    #     raise
 
     os.chdir('Data/Intensities/BaseCalls/Unaligned')
-    try:
-        with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
-            # proc = subprocess.Popen(['make', '-j', str(cpu_count)], stdout=out, stderr=err, shell=True)
-            proc = subprocess.Popen(['make', '-j', str(cpu_count)], stdout=out, stderr=err, shell=True)
-            proc.communicate()
-            exit_code = proc.wait()
-            if exit_code > 0:
-                print >>sys.stderr, "ERROR: make command failed!!!\nExiting."
-                server_name = get_hostname()
-                subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
-                content = "Server: {}\nRun name: {}\n Error running 'make'".format(
-                    server_name, run_config['run_name']
-                )
-                emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
-                                  to=config['addresses']['to'],
-                                  cc=config['addresses']['cc'],
-                                  reply_to=config['addresses']['reply-to'],
-                                  subject=subj, content=content)
-                sys.exit(1)
-    except:
-        print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
-        raise
+    # try:
+    #     with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
+    #         # proc = subprocess.Popen(['make', '-j ' + str(cpu_count)], stdout=out, stderr=err, shell=True)
+    #         proc = subprocess.Popen(['make', '-j 2'], stdout=out, stderr=err, shell=True)
+    #         proc.communicate()
+    #         exit_code = proc.wait()
+    #         if exit_code > 0:
+    #             print >>sys.stderr, "ERROR: make command failed!!!\nExiting."
+    #             server_name = get_hostname()
+    #             subj = "Error processing {} : {}".format(server_name, run_config['run_name'])
+    #             content = "Server: {}\nRun name: {}\n Error running 'make'".format(
+    #                 server_name, run_config['run_name']
+    #             )
+    #             emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+    #                               to=config['addresses']['to'],
+    #                               cc=config['addresses']['cc'],
+    #                               reply_to=config['addresses']['reply-to'],
+    #                               subject=subj, content=content)
+    #             sys.exit(1)
+    # except:
+    #     print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
+    #     raise
     os.chdir('..')
     os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
+    os.rename('SampleSheet.csv', 'SampleSheet' + str(barcode_len) + '.csv')
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
 
 
@@ -256,23 +257,42 @@ def concatenate_demultiplex_html():
                     html += '</table>\n' + line
                 elif flag and '<col' not in line:
                     if '</td>' in line or line == '<tr>\n':  # remove return character to make for easier parsing
-                        line = line.rstrip()
-                    html += line + '\n'
+                        line = line.rstrip()  # put each library's record in one line of html for server-side
+                                              # editing purposes
+                    html += line
                 if '<body>' in line:
                     flag = 1
             final_html += '<div>' + html + '</div>'
     return final_html
 
 
-def post_demultiplex_files(url, run_name=None):
+def post_demultiplex_files(config=None, run_name=None):
     demux_html = concatenate_demultiplex_html()
     html_json = {"html": demux_html}
     headers = {"Content-type": "application/json"}
-    response = requests.post(url, data=json.dumps(html_json), headers=headers)
-    print "Post_demultiplex_files response: {}".format(json.dumps(response))
+    response = requests.post(os.path.join(config['seqConfig']['URL_post_demultiplex_files'],
+                                          run_name + '/'),
+                             data=json.dumps(html_json),
+                             headers=headers)
+    print "Post_demultiplex_files response: {}".format(response.text)
 
 
 def process_run(run_config=None, config=None):
+
+    subject = "{} - Run {} Preprocessing Initiated".format(socket.gethostname(),
+                                                           run_config['run_name'])
+    message = "Preprocessing has been started for run\n{}".format(run_config['run_name'])
+    emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
+                      to=config['addresses']['to'],
+                      cc=config['addresses']['cc'],
+                      reply_to=config['addresses']['reply-to'],
+                      subject=subject,
+                      content=message)
+
+    response = requests.get(os.path.join(config['seqConfig']['URL_set_run_status'],
+                                         run_config['run_name'],
+                                         '3'))
+    print response.text
 
     lane_collections = collect_lanes_by_barcode_len(run_config=run_config)
     base_calls_dir = os.path.join(config['root_dir'], run_config['run_name'],
@@ -301,12 +321,15 @@ def process_run(run_config=None, config=None):
     link_files(run_config=run_config, config=config)
     # TODO md5sums
     # TODO fastqc processing
-    os.mknod(config['processing_complete_filename'])
+
+    response = requests.get(os.path.join(config['seqConfig']['URL_set_run_status'],
+                                         run_config['run_name'],
+                                         '4'))
+    print response.text
 
     demultiplex_files = find_demultiplex_files()
 
-    post_demultiplex_files(url=config['seqConfig']['URL_post_demultiplex_files'],
-                           run_name=run_config['run_name'])
+    post_demultiplex_files(config=config, run_name=run_config['run_name'])
 
     subj = 'Preprocessing complete: {}'.format(run_config['run_name'])
     message = '''
