@@ -68,6 +68,7 @@ def main():
 
     lock = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
+    print "Unprocessed runs:"
     print unprocessed_runs
 
     if len(unprocessed_runs) > 0:
