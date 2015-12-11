@@ -34,6 +34,7 @@ def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
     :param subject:
     :return:
     """
+    print "Emailer sending this in content: {}".format(content)
     mandrill_client = mandrill.Mandrill(api_key)
     message = {
         "to": [],
@@ -47,7 +48,7 @@ def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
         message['to'].append({"email": address, "type": "cc"})
 
     message['from_email'] = reply_to
-    message['text'] = content
+    #message['text'] = content
 
     html_content = ''
     if html_files:
@@ -55,7 +56,9 @@ def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
             with open(filename, 'r') as f:
                 html_content += f.read()
 
-    message['html'] = html_content + html_style
+    content = content.replace('\n', '<br>\n')
+
+    message['html'] = '<br>\n'.join([content, html_content, html_style])
 
     result = mandrill_client.messages.send(message=message, async=False,
                                            ip_pool='Main Pool')

@@ -78,11 +78,13 @@ These files will not be released:
     def get_release_status_for_file(self, filename=None):
         toks = filename.split('_')
         bionimbus_id = toks[0]
-        run_name = '_'.join(toks[1:4])
+        run_name = '_'.join(toks[1:5])
         lane_number = toks[5]
+        print "run_name: {}  lane_number: {}  bionimbus_id: {}".format(run_name,lane_number, bionimbus_id)
         response = requests.get(os.path.join(self.config['seqConfig']['URL_get_library_status'],
-                                             run_name, lane_number, bionimbus_id))
-        return int(json.loads(response.text)[bionimbus_id])
+                                             run_name, lane_number, bionimbus_id + '/'))
+        print "response object is of type:".format(type(response))
+        return json.loads(response.text)[bionimbus_id]
 
     def update_run_status(self, run_name, status):
         response = requests.get(os.path.join(self.config['seqConfig']['URL_set_run_status'],
