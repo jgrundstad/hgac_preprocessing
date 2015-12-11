@@ -1,12 +1,32 @@
 {
+  "root_dir": "/path/to/Illumina/run/directories",
+  "transfer_complete_filename": "RTAComplete.txt",
+  "processing_complete_filename": "ProcessingComplete.txt",
+  "BaseCalls_dir": "Data/Intensities/BaseCalls",
+  "configureBclToFastq": {
+    "script": "/path/to/configureBclToFastq.pl",
+    "general_options": "--no-eamss --fastq-cluster-count 0 --ignore-missing-control --ignore-missing-stats --ignore-missing-bcl --force",
+    "input_dir": "--input-dir Data/Intensities/BaseCalls/",
+    "output_dir": "--output-dir Data/Intensities/BaseCalls/Unaligned",
+    "sample_sheet": "--sample-sheet Data/Intensities/BaseCalls/SampleSheet.csv"
+  },
   "email": {
     "EMAIL_USE_TLS": "True",
-    "EMAIL_HOST": "someserver",
+    "EMAIL_HOST": "smtp.mandrillapp.com",
     "EMAIL_PORT": "587",
-    "EMAIL_HOST_USER": "someaddress",
-    "EMAIL_HOST_PASSWORD": "somepassword"
+    "EMAIL_HOST_USER": "mandrill_account_name",
+    "EMAIL_HOST_PASSWORD": "mandrill secret key"
   },
   "addresses": {
-    "to": "to@email.add"
+    "to": ["someone@somewhere.email"],
+    "cc": [],
+	"reply-to": "someone@somewhere.email"
+  },
+  "seqConfig": {
+    "URL_get_config": "http://localhost:8000/seq-config/config/get",
+    "URL_post_demultiplex_files": "http://localhost:8000/seq-config/run/demultiplex_file/post",
+    "URL_get_runs_by_status": "http://localhost:8000/seq-config/run/get_runs_by_status",
+    "URL_set_run_status": "http://localhost:8000/seq-config/run/set_run_status",
+    "URL_get_library_status": "http://localhost:8000/seq-config/library/get_library_status"
   }
 }
