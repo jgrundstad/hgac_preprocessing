@@ -11,9 +11,9 @@ and perform preprocessing as described by each run's parameters.
 2. ```HGAC_run_releaser.py``` - Queue processed data for release/import into Bionimbus
 
 
-# HGAC_run_monitor.py
+## HGAC_run_monitor.py
 
-## Requirements:
+### Requirements:
 
 ```
 cffi==1.3.0
@@ -36,7 +36,7 @@ SQLAlchemy==1.0.9
 zc.lockfile==1.1.0
 ```
 
-## config.json
+### config.json
 
 ```py
 {
@@ -73,8 +73,23 @@ zc.lockfile==1.1.0
 }
 ```
 
-## Run command to initiate preprocessing on available run data 
+### Run command to initiate preprocessing on available run data 
 
 ```sh
 /path/to/env/python HGAC_run_monitor.py -c config.json
+```
+\* may be run as a cron-job 
+
+## HGAC_run_releaser.py
+
+### Requirements
+Same as above
+
+### config.json
+Same as above
+
+### Run command to initiate data release
+
+```sh
+/path/to/env/python HGAC_run_releaser.py -c config.json
 ```
