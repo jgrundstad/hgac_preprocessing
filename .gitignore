@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 
 .idea
+.idea/dictionaries
 
 # C extensions
 *.so
