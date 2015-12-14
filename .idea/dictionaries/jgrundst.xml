@@ -1,11 +1,18 @@
 <component name="ProjectDictionaryState">
   <dictionary name="jgrundst">
     <words>
+      <w>conv</w>
+      <w>demultiplex</w>
       <w>demultiplexing</w>
+      <w>demux</w>
+      <w>demuxed</w>
+      <w>fastqs</w>
       <w>illumina</w>
       <w>jgrundst</w>
       <w>lockfile</w>
       <w>preprocessing</w>
+      <w>releaser</w>
+      <w>unbinned</w>
     </words>
   </dictionary>
 </component>
