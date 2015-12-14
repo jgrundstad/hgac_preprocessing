@@ -10,8 +10,17 @@ This repository contains 2 primary components:
 and perform preprocessing as described by each run's parameters.
 2. ```HGAC_run_releaser.py``` - Queue processed data for release/import into Bionimbus
 
+Emailing service is handled via Mandrill: [https://mandrillapp.com](https://mandrillapp.com)
+---
 
 ## HGAC_run_monitor.py
+
+1. Search local directories for newly completed sequencing run
+2. Search SeqConfig for matching run configuration
+3. Demultiplex:
+  a. Must be performed once per barcode length (if there are multiple barcode lengths in the run) 
+  b. Demultiplexing is performed by Illumina's [Bcl2Fastq Conversion Software](https://support.illumina.com/downloads/bcl2fastq_conversion_software_184.html)
+  c. Fastq data is renamed to our conventions, and linked to a <run_name>/TEMP/ directory
 
 ### Requirements:
 
@@ -79,6 +88,8 @@ zc.lockfile==1.1.0
 /path/to/env/python HGAC_run_monitor.py -c config.json
 ```
 \* may be run as a cron-job 
+
+
 
 ## HGAC_run_releaser.py
 
