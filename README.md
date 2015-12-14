@@ -8,7 +8,7 @@ This repository contains 2 primary components:
 
 1. [HGAC_run_monitor.py](#hgac_run_monitorpy) - Watch the defined root data directory for completed sequencing runs,
 and perform preprocessing as described by each run's parameters.
-2. ```HGAC_run_releaser.py``` - Queue processed data for release/import into Bionimbus
+2. [HGAC_run_releaser.py](#hgac_run_releaserpy) - Queue processed data for release/import into Bionimbus
 
 Emailing service is handled via Mandrill: [https://mandrillapp.com]
 
@@ -93,6 +93,13 @@ zc.lockfile==1.1.0
 
 
 ## HGAC_run_releaser.py
+
+1. Check filesystem for newly processed run directory
+2. Check SeqConfig for newly released run names
+3. Break symlinks in ```<run_dir>/TEMP``` for data marked to be held back.
+3. Queue the run for the release/import process:
+  a. ```mv <run_dir>/TEMP COMPLETED```
+  b. ```touch <run_dir>/COMPLETED/sync.me```
 
 ### Requirements
 Same as above
