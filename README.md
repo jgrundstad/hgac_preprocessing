@@ -19,9 +19,9 @@ Emailing service is handled via Mandrill: [https://mandrillapp.com]
 1. Search local directories for newly completed sequencing run
 2. Search SeqConfig for matching run configuration
 3. Demultiplex:
-  a. Must be performed once per barcode length (if there are multiple barcode lengths in the run) 
-  b. Demultiplexing is performed by Illumina's [Bcl2Fastq Conversion Software](https://support.illumina.com/downloads/bcl2fastq_conversion_software_184.html)
-  c. Fastq data is renamed to our conventions, and linked to a <run_name>/TEMP/ directory
+  1. Must be performed once per barcode length (if there are multiple barcode lengths in the run) 
+  2. Demultiplexing is performed by Illumina's [Bcl2Fastq Conversion Software](https://support.illumina.com/downloads/bcl2fastq_conversion_software_184.html)
+  3. Fastq data is renamed to our conventions, and linked to a <run_name>/TEMP/ directory
 
 ### Requirements:
 
@@ -98,8 +98,8 @@ zc.lockfile==1.1.0
 2. Check SeqConfig for newly released run names
 3. Break symlinks in ```<run_dir>/TEMP``` for data marked to be held back.
 3. Queue the run for the release/import process:
-  a. ```mv <run_dir>/TEMP COMPLETED```
-  b. ```touch <run_dir>/COMPLETED/sync.me```
+  1. ```mv <run_dir>/TEMP COMPLETED```
+  2. ```touch <run_dir>/COMPLETED/sync.me```
 
 ### Requirements
 Same as above
