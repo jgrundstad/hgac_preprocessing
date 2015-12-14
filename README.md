@@ -21,7 +21,7 @@ Emailing service is handled via Mandrill: [https://mandrillapp.com]
 3. Demultiplex:
   1. Must be performed once per barcode length (if there are multiple barcode lengths in the run) 
   2. Demultiplexing is performed by Illumina's [Bcl2Fastq Conversion Software](https://support.illumina.com/downloads/bcl2fastq_conversion_software_184.html)
-  3. Fastq data is renamed to our conventions, and linked to a <run_name>/TEMP/ directory
+  3. Fastq data files are renamed to our conventions, and sym-linked to a <run_name>/TEMP/ directory
 
 ### Requirements:
 
