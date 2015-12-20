@@ -127,7 +127,7 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     :param barcode_len:
     :return:
     """
-    cpu_count = multiprocessing.cpu_count()
+    cpu_count = str(multiprocessing.cpu_count())
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
     cmd = build_configureBclToFastq_command(run_config=run_config, config=config,
                                             barcode_len=barcode_len)
@@ -165,8 +165,8 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     os.chdir('Data/Intensities/BaseCalls/Unaligned')
     try:
         with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
-            # proc = subprocess.Popen(['make', '-j ' + str(cpu_count)], stdout=out, stderr=err, shell=True)
-            proc = subprocess.Popen(['make', '-j 2'], stdout=out, stderr=err, shell=True)
+            proc = subprocess.Popen(['make -j ' + cpu_count], stdout=out, stderr=err, shell=True)
+            #proc = subprocess.Popen(['make', '-j 2'], stdout=out, stderr=err, shell=True)
             proc.communicate()
             exit_code = proc.wait()
             if exit_code > 0:
