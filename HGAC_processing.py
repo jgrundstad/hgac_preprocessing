@@ -336,7 +336,7 @@ def process_run(run_config=None, config=None):
 Preprocessing complete for run: {}
 Server: {}
 '''
-    message.format(run_config['run_name'], socket.gethostname())
+    message = message.format(run_config['run_name'], socket.gethostname())
     emailer.send_mail(api_key=config['email']['EMAIL_HOST_PASSWORD'],
                       to=config['addresses']['to'], cc=config['addresses']['cc'],
                       reply_to=config['addresses']['reply-to'], subject=subj,
