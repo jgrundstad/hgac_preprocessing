@@ -98,7 +98,7 @@ def generate_support_files(run_config=None, config=None, lanes=None, path=None):
 
     for lane in lanes:
         for bnid in run_config['Lanes'][lane]:
-            submitter = run_config['Lanes'][lane][bnid]['submitter']
+            submitter = run_config['Lanes'][lane][bnid]['submitter'].replace(' ', '')
             barcode_name = run_config['Lanes'][lane][bnid]['barcode_name']
             barcode_seq = run_config['Lanes'][lane][bnid]['barcode_seq']
             if barcode_name == 'null':
