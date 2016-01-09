@@ -51,7 +51,7 @@ def build_configureBclToFastq_command(run_config=None, config=None,
     base_mask = '--use-bases-mask Y{}'.format(run_config['read1_cycles'])
     if run_config['barcode_cycles'] > 0:
         base_mask += ',I{}'.format(barcode_len)
-        for i in range(barcode_len, run_config['barcode_cycles'] - 1):  # account for unneeded index cycles
+        for i in range(barcode_len, run_config['barcode_cycles']):  # account for unneeded index cycles
             base_mask += 'N'
     if run_config['read2_cycles'] is not None:
         base_mask += ',Y{}'.format(run_config['read2_cycles'])
