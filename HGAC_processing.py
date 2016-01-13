@@ -49,11 +49,11 @@ def build_configureBclToFastq_command(run_config=None, config=None,
     sample_sheet = bcl_dict['sample_sheet']
 
     base_mask = '--use-bases-mask Y{}'.format(run_config['read1_cycles'])
-    if run_config['barcode_cycles'] is not 'null':
-        base_mask += ',I{}'.format(run_config['barcode_cycles'])
-        for i in range(barcode_len, run_config['barcode_cycles'] - 1):  # account for unneeded index cycles
+    if run_config['barcode_cycles'] > 0:
+        base_mask += ',I{}'.format(barcode_len)
+        for i in range(barcode_len, run_config['barcode_cycles']):  # account for unneeded index cycles
             base_mask += 'N'
-    if run_config['read2_cycles'] is not 'null':
+    if run_config['read2_cycles'] is not None:
         base_mask += ',Y{}'.format(run_config['read2_cycles'])
 
     return ' '.join([binary, general_options, input_dir, output_dir, sample_sheet, base_mask])
@@ -98,7 +98,7 @@ def generate_support_files(run_config=None, config=None, lanes=None, path=None):
 
     for lane in lanes:
         for bnid in run_config['Lanes'][lane]:
-            submitter = run_config['Lanes'][lane][bnid]['submitter']
+            submitter = run_config['Lanes'][lane][bnid]['submitter'].replace(' ', '')
             barcode_name = run_config['Lanes'][lane][bnid]['barcode_name']
             barcode_seq = run_config['Lanes'][lane][bnid]['barcode_seq']
             if barcode_name == 'null':
