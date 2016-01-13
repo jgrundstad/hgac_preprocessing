@@ -8,8 +8,8 @@ import re
 import json
 
 import requests
-from requests import request
 
+from util import job_manager
 from util import emailer
 
 __author__ = 'A. Jason Grundstad'
@@ -277,6 +277,28 @@ def post_demultiplex_files(config=None, run_name=None):
     print "Post_demultiplex_files response: {}".format(response.text)
 
 
+def run_fastqc(config=None, run_config=None):
+    os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
+    try:
+        os.mkdir('TEMP')
+    except OSError:
+        print 'Warning: TEMP directory already exists, which is ok.'
+    os.chdir(os.path.join(config['root_dir'], run_config['run_name'], 'TEMP'))
+    jobs = []
+    for fastq in glob.glob('*_sequence.txt.gz'):
+        cmd = '{fastqc} -j {java} -o ../{QC}/ {fastq}'.format(
+            fastqc=config['qc']['fastqc'], java=config['qc']['java'], QC=config['qc']['dir'],
+            fastq=fastq)
+        jobs.append(cmd)
+    job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
+
+    # copy output files to hgac_server
+    os.chdir(os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']))
+    cmd = 'rsync -av --progress --stats *html *zip {}/{}/'.format(config['qc']['server'],
+                                                                  run_config['run_name'])
+    job_manager.job_manager([cmd], threads=1, interval=10)
+
+
 def process_run(run_config=None, config=None):
 
     subject = "{} - Run {} Preprocessing Initiated".format(socket.gethostname(),
@@ -320,13 +342,15 @@ def process_run(run_config=None, config=None):
     # link files, md5sums, fastqc processing
     link_files(run_config=run_config, config=config)
     # TODO md5sums
-    # TODO fastqc processing
+    run_fastqc(config=config, run_config=run_config)
 
+    # update the run status on seq-config
     response = requests.get(os.path.join(config['seqConfig']['URL_set_run_status'],
                                          run_config['run_name'],
                                          '4'))
     print response.text
 
+    # grab all the demux summary files, email them and send to seq-config
     demultiplex_files = find_demultiplex_files()
 
     post_demultiplex_files(config=config, run_name=run_config['run_name'])
