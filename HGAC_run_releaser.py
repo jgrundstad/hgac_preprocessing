@@ -64,8 +64,8 @@ These files will not be released:
 {removed}
 '''
         message = message.format(run_name=run_name, hostname=hostname,
-                                 imported='\n'.join(released_files),
-                                 removed='\n'.join(removed_files))
+                                 imported='\n'.join(sorted(released_files)),
+                                 removed='\n'.join(sorted(removed_files)))
 
         emailer.send_mail(api_key=self.config['email']['EMAIL_HOST_PASSWORD'],
                           to=self.config['addresses']['to'],
