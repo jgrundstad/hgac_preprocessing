@@ -294,7 +294,7 @@ def run_fastqc(config=None, run_config=None):
 
     # copy output files to hgac_server
     os.chdir(os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']))
-    cmd = 'rsync -av --progress --stats *html *zip {}/{}/'.format(config['qc']['server'],
+    cmd = 'rsync -av --progress --stats *html {}/{}/'.format(config['qc']['server'],
                                                                   run_config['run_name'])
     job_manager.job_manager([cmd], threads=1, interval=10)
 
