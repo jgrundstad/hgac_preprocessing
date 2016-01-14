@@ -9,8 +9,8 @@ import json
 
 import requests
 
-from util import job_manager
 from util import emailer
+from util import fastqc
 
 __author__ = 'A. Jason Grundstad'
 
@@ -20,6 +20,11 @@ def get_hostname():
 
 
 def collect_lanes_by_barcode_len(run_config=None):
+    """
+    demultiplexing can only be done over barcodes of similar length.
+    :param run_config:
+    :return:
+    """
     lanes_by_barcode_length = dict()
     for lane in run_config['Lanes']:
         for bnid in run_config['Lanes'][lane]:
@@ -51,7 +56,11 @@ def build_configureBclToFastq_command(run_config=None, config=None,
     base_mask = '--use-bases-mask Y{}'.format(run_config['read1_cycles'])
     if run_config['barcode_cycles'] > 0:
         base_mask += ',I{}'.format(barcode_len)
-        for i in range(barcode_len, run_config['barcode_cycles']):  # account for unneeded index cycles
+        """
+        on occasion the barcode cycles run on the machine are greater than those needed
+        for demultiplexing.  Add N's to the end of the Index mask to account for those.
+        """
+        for i in range(barcode_len, run_config['barcode_cycles']):
             base_mask += 'N'
     if run_config['read2_cycles'] is not None:
         base_mask += ',Y{}'.format(run_config['read2_cycles'])
@@ -95,9 +104,9 @@ def generate_support_files(run_config=None, config=None, lanes=None, path=None):
 
     # SampleSheet.csv header
     print >>sample_sheet, "FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,SampleProject"
-
     for lane in lanes:
         for bnid in run_config['Lanes'][lane]:
+            # submitter must not contain any spaces
             submitter = run_config['Lanes'][lane][bnid]['submitter'].replace(' ', '')
             barcode_name = run_config['Lanes'][lane][bnid]['barcode_name']
             barcode_seq = run_config['Lanes'][lane][bnid]['barcode_seq']
@@ -107,7 +116,7 @@ def generate_support_files(run_config=None, config=None, lanes=None, path=None):
             print >>sample_sheet, ','.join([flowcell_id, lane, bnid, '', barcode_seq,
                                             barcode_name, 'N', 'R1', 'tech', submitter])
 
-    # build config.txt
+    # build config.txt - describes which lanes will be processed
     analysis_type = 'sequence'
     if 'paired' in run_config['run_type']:
         analysis_type += '_pair'
@@ -120,8 +129,10 @@ def generate_support_files(run_config=None, config=None, lanes=None, path=None):
 def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     """
     This needs to be performed in the /raid/illumina_production/<run_name> dir
-    runs the BCLToFastq Illumina software, configuring the demultiplexing,
-    which is executed then with a 'make' command over the available cores
+    runs the BCLToFastq Illumina software in 2 stages:
+        1. configuration - build directory structure, and supporting files
+        2. run process described in Makefile with 'make' over the available cores
+    Also sends announcement emails if processes have errored out
     :param run_config:
     :param config:
     :param barcode_len:
@@ -131,14 +142,12 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
     cmd = build_configureBclToFastq_command(run_config=run_config, config=config,
                                             barcode_len=barcode_len)
-    print "pre-split cmd: {}".format(cmd)
     try:
         with open(os.path.join(config['root_dir'], run_config['run_name'],
                                'configureBclToFastq.log.out'), 'w') as out, \
                 open(os.path.join(config['root_dir'], run_config['run_name'],
                                   'configureBclToFastq.log.err'), 'w') as err:
             print >>out, "{}".format(cmd)
-            # print "args: {}".format(args)
             proc = subprocess.Popen(cmd, stdout=out, stderr=err, shell=True)
             proc.communicate()
             exit_code = proc.returncode
@@ -157,7 +166,6 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
                                   reply_to=config['addresses']['reply-to'],
                                   subject=subj, content=content)
                 sys.exit(1)
-
     except:
         print >>sys.stderr, "ERROR: unable to run configureBclToFastq.  Exiting."
         raise
@@ -166,7 +174,6 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     try:
         with open('BclToFastq.log.out', 'w') as out, open('BclToFastq.log.err', 'w') as err:
             proc = subprocess.Popen(['make -j ' + cpu_count], stdout=out, stderr=err, shell=True)
-            #proc = subprocess.Popen(['make', '-j 2'], stdout=out, stderr=err, shell=True)
             proc.communicate()
             exit_code = proc.wait()
             if exit_code > 0:
@@ -191,7 +198,12 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
 
 
-def link_files(run_config=None, config=None):
+def link_files(run_config=None):
+    """
+    search the run directory structure to find all generated fastq.gz files.
+    Link them to the <run_dir>/TEMP directory with proper naming
+    :param run_config:
+    """
     os.chdir('TEMP')
     # find all unaligned, non-undetermined files
     files = glob.glob('../Data/Intensities/BaseCalls/Unaligned*/Project_*/*/*.fastq.gz')
@@ -256,9 +268,8 @@ def concatenate_demultiplex_html():
                 elif flag and line == '<p></p>\n' or '<p>bcl2fastq' in line:
                     html += '</table>\n' + line
                 elif flag and '<col' not in line:
-                    if '</td>' in line or line == '<tr>\n':  # remove return character to make for easier parsing
-                        line = line.rstrip()  # put each library's record in one line of html for server-side
-                                              # editing purposes
+                    if '</td>' in line or line == '<tr>\n':  # remove return character for easier parsing
+                        line = line.rstrip()  # put each library's record in one line of html
                     html += line
                 if '<body>' in line:
                     flag = 1
@@ -267,6 +278,11 @@ def concatenate_demultiplex_html():
 
 
 def post_demultiplex_files(config=None, run_name=None):
+    """
+    Send the parsed html table(s) to seqConfig
+    :param run_name:
+    :param config:
+    """
     demux_html = concatenate_demultiplex_html()
     html_json = {"html": demux_html}
     headers = {"Content-type": "application/json"}
@@ -277,32 +293,8 @@ def post_demultiplex_files(config=None, run_name=None):
     print "Post_demultiplex_files response: {}".format(response.text)
 
 
-def run_fastqc(config=None, run_config=None):
-    os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
-    try:
-        os.mkdir(config['qc']['dir'])
-    except OSError:
-        print 'Warning: {} directory already exists, which is ok.'.format(
-                config['qc']['dir'])
-    os.chdir(os.path.join(config['root_dir'], run_config['run_name'], 'TEMP'))
-    jobs = []
-    for fastq in glob.glob('*_sequence.txt.gz'):
-        cmd = '{fastqc} -j {java} -o {QC} {fastq}'.format(
-            fastqc=config['qc']['fastqc'], java=config['qc']['java'], 
-            QC=os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']),
-            fastq=fastq)
-        print "appending cmd: {}".format(cmd)
-        jobs.append(cmd)
-    job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
-
-    # copy output files to hgac_server
-    os.chdir(os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']))
-    cmd = 'rsync -av --progress --stats *html {}/{}/'.format(config['qc']['server'],
-                                                                  run_config['run_name'])
-    job_manager.job_manager([cmd], threads=1, interval=10)
-
-
 def process_run(run_config=None, config=None):
+    # send email announcing preprocessing initiation
     subject = "{} - Run {} Preprocessing Initiated".format(socket.gethostname(),
                                                            run_config['run_name'])
     message = "Preprocessing has been started for run\n{}".format(run_config['run_name'])
@@ -312,12 +304,12 @@ def process_run(run_config=None, config=None):
                       reply_to=config['addresses']['reply-to'],
                       subject=subject,
                       content=message)
-
     response = requests.get(os.path.join(config['seqConfig']['URL_set_run_status'],
                                          run_config['run_name'],
                                          '3'))
     print response.text
 
+    # collect the lanes by barcode.  Each barcode length requires its own process.
     lane_collections = collect_lanes_by_barcode_len(run_config=run_config)
     base_calls_dir = os.path.join(config['root_dir'], run_config['run_name'],
                                   config['BaseCalls_dir'])
@@ -341,10 +333,13 @@ def process_run(run_config=None, config=None):
         # execute configureBclToFastq and make -j num_cores
         bcl_to_fastq(run_config=run_config, config=config, barcode_len=barcode_length)
 
-    # link files, md5sums, fastqc processing
-    link_files(run_config=run_config, config=config)
+    # Post-demultiplexing steps:
+    # link sequence.txt.gz files
     # TODO md5sums
-    run_fastqc(config=config, run_config=run_config)
+    # fastqc processing
+    link_files(run_config=run_config)
+    fastqc.run_fastqc(config=config, run_config=run_config)
+    fastqc.send_fastq_to_server(config=config, run_config=run_config)
 
     # update the run status on seq-config
     response = requests.get(os.path.join(config['seqConfig']['URL_set_run_status'],
@@ -354,9 +349,7 @@ def process_run(run_config=None, config=None):
 
     # grab all the demux summary files, email them and send to seq-config
     demultiplex_files = find_demultiplex_files()
-
     post_demultiplex_files(config=config, run_name=run_config['run_name'])
-
     subj = 'Preprocessing complete: {}'.format(run_config['run_name'])
     message = '''
 Preprocessing complete for run: {}
