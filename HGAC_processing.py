@@ -183,7 +183,7 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
                                   subject=subj, content=content)
                 sys.exit(1)
     except:
-        print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(os.getcwd())
+        print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(run_config['run_name'])
         raise
     os.chdir('..')
     os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
@@ -280,17 +280,20 @@ def post_demultiplex_files(config=None, run_name=None):
 def run_fastqc(config=None, run_config=None):
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
     try:
-        os.mkdir('TEMP')
+        os.mkdir(config['qc']['dir'])
     except OSError:
-        print 'Warning: TEMP directory already exists, which is ok.'
+        print 'Warning: {} directory already exists, which is ok.'.format(
+                config['qc']['dir'])
     os.chdir(os.path.join(config['root_dir'], run_config['run_name'], 'TEMP'))
     jobs = []
     for fastq in glob.glob('*_sequence.txt.gz'):
-        cmd = '{fastqc} -j {java} -o ../{QC}/ {fastq}'.format(
-            fastqc=config['qc']['fastqc'], java=config['qc']['java'], QC=config['qc']['dir'],
+        cmd = '{fastqc} -j {java} -o {QC} {fastq}'.format(
+            fastqc=config['qc']['fastqc'], java=config['qc']['java'], 
+            QC=os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']),
             fastq=fastq)
+        print "appending cmd: {}".format(cmd)
         jobs.append(cmd)
-    job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
+    #job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
 
     # copy output files to hgac_server
     os.chdir(os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']))
@@ -300,7 +303,6 @@ def run_fastqc(config=None, run_config=None):
 
 
 def process_run(run_config=None, config=None):
-
     subject = "{} - Run {} Preprocessing Initiated".format(socket.gethostname(),
                                                            run_config['run_name'])
     message = "Preprocessing has been started for run\n{}".format(run_config['run_name'])
