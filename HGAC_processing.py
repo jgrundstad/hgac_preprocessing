@@ -293,7 +293,7 @@ def run_fastqc(config=None, run_config=None):
             fastq=fastq)
         print "appending cmd: {}".format(cmd)
         jobs.append(cmd)
-    #job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
+    job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
 
     # copy output files to hgac_server
     os.chdir(os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']))
