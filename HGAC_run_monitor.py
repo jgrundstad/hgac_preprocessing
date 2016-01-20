@@ -41,10 +41,9 @@ def parse_config(config_file=None):
     return json.loads(data)
 
 
-def start_processing(run_name=None, config=None):
+def get_run_config(config=None, run_name=None):
     config_request = requests.get('/'.join([config['seqConfig']['URL_get_config'], run_name]))
-    run_config = json.loads(config_request.text)
-    Hp.process_run(run_config=run_config, config=config)
+    return json.loads(config_request.text)
 
 
 def set_lockfile(lockfile=None):
@@ -81,7 +80,8 @@ def main():
                 # manually remove it to queue up for processing
                 os.mknod(os.path.join(config['root_dir'], unprocessed_runs[0],
                                       config['processing_complete_filename']))
-                start_processing(run_name=unprocessed_runs[0], config=config)
+                run_config = get_run_config(config, run_name=run_name)
+                Hp.process_run(run_config=run_config, config=config)
                 break # just do the first approved and stop
             else:
                 print "Run {} does not have an approved config file available".format(
