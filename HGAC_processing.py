@@ -283,6 +283,7 @@ def post_demultiplex_files(config=None, run_name=None):
     :param run_name:
     :param config:
     """
+    os.chdir(os.path.join(config['root_dir'], run_name))
     demux_html = concatenate_demultiplex_html()
     html_json = {"html": demux_html}
     headers = {"Content-type": "application/json"}
