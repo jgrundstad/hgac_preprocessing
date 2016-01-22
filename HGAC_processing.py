@@ -197,9 +197,9 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
         os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
     except OSError:
         print >>sys.stderr, "Warning! moving Unaligned{} directory to Unaligned{}.old".format(
-            str(barcode_len)
+            str(barcode_len), str(barcode_len)
         )
-        os.rename('Unaligned' + str(barcode_len), 'Unaligned' + str(barcode_len + '.old'))
+        os.rename('Unaligned' + str(barcode_len), 'Unaligned' + str(barcode_len) + '.old')
         os.rename('Unaligned', 'Unaligned' + str(barcode_len))
 
     os.rename('SampleSheet.csv', 'SampleSheet' + str(barcode_len) + '.csv')
