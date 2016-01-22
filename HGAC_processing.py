@@ -193,7 +193,15 @@ def bcl_to_fastq(run_config=None, config=None, barcode_len=None):
         print >>sys.stderr, "ERROR: unable to run 'make' ({})".format(run_config['run_name'])
         raise
     os.chdir('..')
-    os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
+    try:
+        os.rename('Unaligned', 'Unaligned' + str(barcode_len))  # in case multiple demux cycles are required
+    except OSError:
+        print >>sys.stderr, "Warning! moving Unaligned{} directory to Unaligned{}.old".format(
+            str(barcode_len)
+        )
+        os.rename('Unaligned' + str(barcode_len), 'Unaligned' + str(barcode_len + '.old'))
+        os.rename('Unaligned', 'Unaligned' + str(barcode_len))
+
     os.rename('SampleSheet.csv', 'SampleSheet' + str(barcode_len) + '.csv')
     os.chdir(os.path.join(config['root_dir'], run_config['run_name']))
 
