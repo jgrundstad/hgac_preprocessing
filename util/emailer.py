@@ -41,18 +41,22 @@ def send_mail(api_key=None, to=None, cc=None, reply_to=None, subject=None,
         "global_merge_vars": [],
         "subject": subject,
     }
-    for address in to:
-        message['to'].append({"email": address, "type": "to"})
+    if to:
+        for address in to:
+            message['to'].append({"email": address, "type": "to"})
 
-    for address in cc:
-        message['to'].append({"email": address, "type": "cc"})
+    if cc:
+        for address in cc:
+            message['to'].append({"email": address, "type": "cc"})
 
-    message['from_email'] = reply_to
-    #message['text'] = content
+    if reply_to:
+        message['from_email'] = reply_to
+        #message['text'] = content
 
     html_content = ''
     if html_files:
         for filename in html_files:
+            print "emailing demultiplex summary file: {}".format(filename)
             with open(filename, 'r') as f:
                 html_content += f.read()
 
