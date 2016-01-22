@@ -26,8 +26,8 @@ def find_unprocessed(root_dir=None, config=None):
     :param config:
     :return:
     """
-    print "preprocessing_complete_filename: {}".format(config['processing_complete_filename'])
-    print "Searching: {}".format(os.path.join(root_dir, '*', config['processing_complete_filename']))
+    #print "preprocessing_complete_filename: {}".format(config['processing_complete_filename'])
+    #print "Searching: {}".format(os.path.join(root_dir, '*', config['processing_complete_filename']))
     transferred_runs = [x.split('/')[3] for x in glob.glob(
         os.path.join(root_dir, '*', config['transfer_complete_filename']))]
     processed_runs = [x.split('/')[3] for x in glob.glob(
@@ -68,8 +68,8 @@ def main():
 
     lock = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
-    print "Unprocessed runs:"
-    print unprocessed_runs
+    #print "Unprocessed runs:"
+    #print unprocessed_runs
 
     if len(unprocessed_runs) > 0:
         # Is the run approved?
