@@ -344,11 +344,7 @@ def process_run(run_config=None, config=None):
 
     # Post-demultiplexing steps:
     # link sequence.txt.gz files
-    # TODO md5sums
-    # fastqc processing
     link_files(run_config=run_config)
-    fastqc.run_fastqc(config=config, run_config=run_config)
-    fastqc.send_fastq_to_server(config=config, run_config=run_config)
 
     # update the run status on seq-config
     response = requests.get(os.path.join(config['seqConfig']['URL_set_run_status'],
@@ -369,3 +365,8 @@ Server: {}
                       to=config['addresses']['to'], cc=config['addresses']['cc'],
                       reply_to=config['addresses']['reply-to'], subject=subj,
                       content=message, html_files=demultiplex_files)
+
+    # tasks that can run in the meantime:
+    fastqc.run_fastqc(config=config, run_config=run_config)
+    fastqc.send_fastq_to_server(config=config, run_config=run_config)
+    # TODO md5sums
