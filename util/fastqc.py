@@ -26,7 +26,7 @@ def run_fastqc(config=None, run_config=None):
     job_manager.job_manager(cmd_list=jobs, threads=multiprocessing.cpu_count(), interval=20)
 
 
-def send_fastq_to_server(config=None, run_config=None):
+def send_fastqc_to_server(config=None, run_config=None):
     os.chdir(os.path.join(config['root_dir'], run_config['run_name'], config['qc']['dir']))
     cmd = 'rsync -av --progress --stats *html {}/{}/'.format(config['qc']['server'],
                                                              run_config['run_name'])

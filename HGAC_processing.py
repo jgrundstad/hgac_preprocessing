@@ -368,5 +368,5 @@ Server: {}
 
     # tasks that can run in the meantime:
     fastqc.run_fastqc(config=config, run_config=run_config)
-    fastqc.send_fastq_to_server(config=config, run_config=run_config)
+    fastqc.send_fastqc_to_server(config=config, run_config=run_config)
     # TODO md5sums
