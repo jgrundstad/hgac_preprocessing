@@ -73,7 +73,7 @@ def main():
 
     if len(unprocessed_runs) > 0:
         # Is the run approved?
-        response = requests.get(os.path.join(config['seqConfig']['URL_get_runs_by_status'], '1'))
+        response = requests.get(os.path.join(config['seqConfig']['URL_get_runs_by_status'], '1/'))
         for run_name in unprocessed_runs:
             if run_name in json.loads(response.text).values():
                 # set the "processed" file to avoid re-firing off the job if something goes wrong
