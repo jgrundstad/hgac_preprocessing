@@ -68,26 +68,30 @@ def main():
 
     lock = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
-    print "Unprocessed runs:"
-    print unprocessed_runs
+    # print "Unprocessed runs:"
+    # print unprocessed_runs
 
-    if len(unprocessed_runs) > 0:
-        # Is the run approved?
-        response = requests.get(os.path.join(config['seqConfig']['URL_get_runs_by_status'], '1/'))
-        print response.text
-        for run_name in unprocessed_runs:
-            if run_name in json.loads(response.text).values():
-                # set the "processed" file to avoid re-firing off the job if something goes wrong
-                # manually remove it to queue up for processing
-                os.mknod(os.path.join(config['root_dir'], unprocessed_runs[0],
-                                      config['processing_complete_filename']))
-                run_config = get_run_config(config, run_name=run_name)
-                Hp.process_run(run_config=run_config, config=config)
-                break # just do the first approved and stop
-            else:
-                print "Run {} does not have an approved config file available".format(
-                    run_name
-                )
+    try:
+        if len(unprocessed_runs) > 0:
+            # Is the run approved?
+            response = requests.get(os.path.join(config['seqConfig']['URL_get_runs_by_status'], '1/'))
+            print response.text
+            for run_name in unprocessed_runs:
+                if run_name in json.loads(response.text).values():
+                    # set the "processed" file to avoid re-firing off the job if something goes wrong
+                    # manually remove it to queue up for processing
+                    os.mknod(os.path.join(config['root_dir'], unprocessed_runs[0],
+                                          config['processing_complete_filename']))
+                    run_config = get_run_config(config, run_name=run_name)
+                    Hp.process_run(run_config=run_config, config=config)
+                    break # just do the first approved and stop
+                else:
+                    print "Run {} does not have an approved config file available".format(
+                        run_name
+                    )
+    except Exception, e:
+        print "raised this exception: {}".format(e)
+        raise
 
     lock.close()
 
