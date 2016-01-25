@@ -56,6 +56,13 @@ def set_lockfile(lockfile=None):
         sys.exit(1)
 
 
+def manual_lockfile(lockfile_name=None):
+    if os.path.exists(lockfile_name):
+        print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much stopping!"
+    else:
+        os.mknod(lockfile_name)
+
+
 def main():
     parser = argparse.ArgumentParser(description='Scan for new Illumina runs. ' +
                                      'Fire off preprocessing/demultiplexing.')
@@ -67,7 +74,10 @@ def main():
 
     config = parse_config(config_file=args.config_file)
 
-    lockfile = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
+    #lockfile = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
+    lockfile = os.path.join(config['root_dir'], 'preprocessing.lock')
+    manual_lockfile(lockfile)
+
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
     # print "Unprocessed runs:"
     # print unprocessed_runs
@@ -95,8 +105,8 @@ def main():
         raise
 
     print "Closing Lockfile."
-    lockfile.close()
-    # os.remove(os.path.join(config['root_dir'], 'preprocessing.lock'))
+    #lockfile.close()
+    os.remove(lockfile)
 
 
 if __name__ == '__main__':
