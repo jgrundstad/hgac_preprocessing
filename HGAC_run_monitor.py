@@ -48,8 +48,8 @@ def get_run_config(config=None, run_name=None):
 
 def set_lockfile(lockfile=None):
     try:
-        lockfile = zc.lockfile.LockFile(lockfile)
-        return lockfile
+        l_file = zc.lockfile.LockFile(lockfile)
+        return l_file
     except zc.lockfile.LockError:
         print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much stopping!"
         print "{}".format(lockfile)
