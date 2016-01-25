@@ -66,7 +66,7 @@ def main():
 
     config = parse_config(config_file=args.config_file)
 
-    lock = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
+    lockfile = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
     # print "Unprocessed runs:"
     # print unprocessed_runs
@@ -93,7 +93,8 @@ def main():
         print "raised this exception: {}".format(e)
         raise
 
-    lock.close()
+    print "Closing Lockfile."
+    lockfile.close()
 
 
 if __name__ == '__main__':
