@@ -94,7 +94,8 @@ def main():
         raise
 
     print "Closing Lockfile."
-    lockfile.close()
+    # lockfile.close()
+    os.remove(os.path.join(config['root_dir'], 'preprocessing.lock'))
 
 
 if __name__ == '__main__':
