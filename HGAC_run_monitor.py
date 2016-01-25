@@ -58,7 +58,7 @@ def set_lockfile(lockfile=None):
 
 def manual_lockfile(lockfile_name=None):
     if os.path.exists(lockfile_name):
-        print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much stopping!"
+        sys.exit(0)
     else:
         os.mknod(lockfile_name)
 
@@ -104,7 +104,7 @@ def main():
         print "raised this exception: {}".format(e)
         raise
 
-    print "Closing Lockfile."
+    #print "Closing Lockfile."
     #lockfile.close()
     os.remove(lockfile)
 
