@@ -68,12 +68,13 @@ def main():
 
     lock = set_lockfile(lockfile=os.path.join(config['root_dir'], 'preprocessing.lock'))
     unprocessed_runs = find_unprocessed(root_dir=config['root_dir'], config=config)
-    #print "Unprocessed runs:"
-    #print unprocessed_runs
+    print "Unprocessed runs:"
+    print unprocessed_runs
 
     if len(unprocessed_runs) > 0:
         # Is the run approved?
         response = requests.get(os.path.join(config['seqConfig']['URL_get_runs_by_status'], '1/'))
+        print response.text
         for run_name in unprocessed_runs:
             if run_name in json.loads(response.text).values():
                 # set the "processed" file to avoid re-firing off the job if something goes wrong
