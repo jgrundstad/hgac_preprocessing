@@ -48,7 +48,8 @@ def get_run_config(config=None, run_name=None):
 
 def set_lockfile(lockfile=None):
     try:
-        return zc.lockfile.LockFile(lockfile)
+        lockfile = zc.lockfile.LockFile(lockfile)
+        return lockfile
     except zc.lockfile.LockError:
         print "ERROR: HGAC_run_monitor.py appears to be running. Very lockfile, much stopping!"
         print "{}".format(lockfile)
@@ -94,8 +95,8 @@ def main():
         raise
 
     print "Closing Lockfile."
-    # lockfile.close()
-    os.remove(os.path.join(config['root_dir'], 'preprocessing.lock'))
+    lockfile.close()
+    # os.remove(os.path.join(config['root_dir'], 'preprocessing.lock'))
 
 
 if __name__ == '__main__':
