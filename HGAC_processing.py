@@ -15,7 +15,7 @@ from util import fastqc
 __author__ = 'A. Jason Grundstad'
 
 
-def get_hostname():
+def het_hostname():
     return socket.gethostname()
 
 

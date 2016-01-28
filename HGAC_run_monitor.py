@@ -43,6 +43,12 @@ def parse_config(config_file=None):
 
 def get_run_config(config=None, run_name=None):
     config_request = requests.get('/'.join([config['seqConfig']['URL_get_config'], run_name]))
+    config_json = json.loads(config_request.text)
+    if 'run_name' not in config_json:
+        print "ERROR: Didn't find run_config for '{}',  perhaps it's misspelled in SeqConfig?".format(
+            run_name
+        )
+        sys.exit(1)
     return json.loads(config_request.text)
 
 
